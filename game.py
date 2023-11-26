@@ -54,9 +54,10 @@ glitch_bounds = False
 pause = False
 debug = False  # можно менять в настройках
 
+# цифра перед * k - это размер объекта по x при разрешении 800x450px
 usage = 50 * k
-ladder_side = 100 * k  # 50px - 800x450px
-door_size = 100 * k  # 50px - 800x450px
+ladder_side = 100 * k
+door_size = 100 * k
 
 global_anim = 0
 anim_counter = 2
