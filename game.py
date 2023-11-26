@@ -139,7 +139,7 @@ while True:
     else:
         item = Entity(-99, -99, -99, -99, -99)  # создаём фантомный объект за пределами экрана для избежания поломок
     if item.x - usage < player.x < item.x + item.size_x + usage:
-        screen.blit(action_font.render('нажмите e для подбора', False, 'Red'), (player.x + 60, player.y - 20))
+        screen.blit(action_font.render('нажмите E для подбора', False, 'Red'), (player.x + 60, player.y - 20))
         can_pickup = True
     else:
         can_pickup = False
@@ -189,7 +189,7 @@ while True:
         puzzle = AnimatedEntity(0, 0, anim_counter, -99, -99, 1, 1, -1)
         puzzle_render = objects.puzzles_renders[puzzle.name]
     if puzzle.x - usage < player.x < puzzle.x + puzzle.size_x + usage:
-        screen.blit(action_font.render('нажмите e для взаимодействия', False, 'Red'), (player.x + 60, player.y - 20))
+        screen.blit(action_font.render('нажмите E для взаимодействия', False, 'Red'), (player.x + 60, player.y - 20))
         can_use = True
     else:
         can_use = False
@@ -215,19 +215,19 @@ while True:
 
     # перемещение по глобальным Y
     if (screen_width - ladder_side) < player.x * 2 < (screen_width + ladder_side) and global_xy in objects.ladders_up:
-        screen.blit(action_font.render('нажмите w для подъёма', False, 'Red'), (player.x + 60, player.y - 20))
+        screen.blit(action_font.render('нажмите W для подъёма', False, 'Red'), (player.x + 60, player.y - 20))
         can_move_up = True
     else:
         can_move_up = False
     if (screen_width - ladder_side) < player.x * 2 < (screen_width + ladder_side) and global_xy in objects.ladders_down:
-        screen.blit(action_font.render('нажмите s для спуска', False, 'Red'), (player.x + 60, player.y - 20))
+        screen.blit(action_font.render('нажмите S для спуска', False, 'Red'), (player.x + 60, player.y - 20))
         can_move_down = True
     else:
         can_move_down = False
 
     # перемещение по глобальным Z
     if (screen_width - door_size) < player.x * 2 < (screen_width + door_size) and global_xy in objects.doors:
-        screen.blit(action_font.render('нажмите e для входа', False, 'Red'), (player.x + 60, player.y - 20))
+        screen.blit(action_font.render('нажмите E для входа', False, 'Red'), (player.x + 60, player.y - 20))
         can_enter = True
     else:
         can_enter = False
