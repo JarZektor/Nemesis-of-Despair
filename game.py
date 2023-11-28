@@ -5,6 +5,7 @@ import animations
 import entities
 import sounds
 import objects
+import schedule
 from entities import Entity, AnimatedEntity, Player
 
 pygame.init()
@@ -31,7 +32,7 @@ action_font = pygame.font.Font('fonts/RookiePunk.ttf', int(28 * k))
 debug_font = pygame.font.Font('fonts/RookiePunk.ttf', int(20 * k))
 glitch_font = pygame.font.Font('fonts/RubikGlitch-Regular.ttf', int(20 * k))
 
-music_volume = 1  # изменять в настройках 0,5 как 100%, 1 как 200%
+music_volume = 0  # изменять в настройках 0,5 как 100%, 1 как 200%
 sound_volume = 1  # изменять в настройках 0,5 как 100%, 1 как 200%
 
 bg_music = random.choice(sounds.melodies)
@@ -52,6 +53,7 @@ can_enter = False
 can_pickup = False
 glitch_bounds = False
 pause = False
+dialogue = False
 debug = False  # можно менять в настройках
 
 # цифра перед * k - это размер объекта по x при разрешении 800x450px
@@ -67,8 +69,10 @@ minute = now_time // 60 % 60
 hour = now_time // 3600 % 24
 day = now_time // 86400 + 1
 glitch_time = 0
-puzzle = AnimatedEntity(0, 0, anim_counter, -1, -1, 1, 1, -1)
+puzzle = AnimatedEntity(0, 0, anim_counter, -1, -1, 1, 1, -1, -1)
 puzzle_render = objects.puzzles_renders[puzzle.name]
+character = AnimatedEntity(0, 0, anim_counter, -1, -1, 1, 1, -1, -1)
+character_render = objects.character_renders[character.name]
 player = Player(k * 4, 0, anim_counter, 0, 0, 0, 100 * k, 100 * k, 100 * k, 350 * k)
 
 player.global_x = 0
@@ -87,6 +91,7 @@ while True:
         minute = now_time // 60 % 60
         hour = now_time // 3600 % 24
         day = now_time // 86400 + 1
+        data = (day, hour)
         bg_music.set_volume(music_volume)
         footstep.set_volume(sound_volume)
         sound.set_volume(sound_volume)
@@ -134,11 +139,11 @@ while True:
     # предметы взаимодействие и отрисовка
     if global_xyz in objects.items:
         item = objects.items[global_xyz]
-        item = Entity(item[3], item[4], item[1], item[2], global_xyz)
+        item = Entity(item[3], item[4], item[1], item[2], global_xyz, 'item')
         screen.blit(pygame.transform.scale(pygame.image.load(f'images/items/{item.name}.png'),
                                            (item.size_x * k, item.size_y * k)), (item.x * k, item.y * k))
     else:
-        item = Entity(-99, -99, -99, -99, -99)  # создаём фантомный объект за пределами экрана для избежания поломок
+        item = Entity(-99, -99, -99, -99, -99, -99)  # создаём фантомный объект за пределами экрана для избежания поломок
     if item.x - usage < player.x < item.x + item.size_x + usage:
         screen.blit(action_font.render('нажмите E для подбора', False, 'Red'), (player.x + 60, player.y - 20))
         can_pickup = True
@@ -166,8 +171,13 @@ while True:
         global_anim += anim_counter
         player.next_frame()
         puzzle.next_frame()
+        character.next_frame()
     screen.blit(pygame.transform.scale(puzzle_render[puzzle.anim // 2], puzzle.size),
-                (puzzle.x + usage, puzzle.y))
+                (puzzle.x, puzzle.y))
+    
+    screen.blit(pygame.transform.scale(character_render[character.anim // 2], character.size),
+                (character.x + usage, character.y))
+    
 
     if keys[pygame.K_a] and not pause:
         screen.blit(pygame.transform.scale(animations.player_move_left[player.anim // 2], player.size),
@@ -184,16 +194,33 @@ while True:
         if puzzle.name == -1:
             puzzle = objects.puzzles[global_xyz]
             puzzle = entities.AnimatedEntity(0, 0, anim_counter, puzzle[3] * k, puzzle[4] * k, puzzle[1] * k,
-                                             puzzle[2] * k, global_xyz)
+                                             puzzle[2] * k, global_xyz, 'puzzle')
             puzzle_render = objects.puzzles_renders[puzzle.name]
     else:
-        puzzle = AnimatedEntity(0, 0, anim_counter, -99, -99, 1, 1, -1)
+        puzzle = AnimatedEntity(0, 0, anim_counter, -99, -99, 1, 1, -1, -1)
         puzzle_render = objects.puzzles_renders[puzzle.name]
     if puzzle.x - usage < player.x < puzzle.x + puzzle.size_x + usage:
         screen.blit(action_font.render('нажмите E для взаимодействия', False, 'Red'), (player.x + 60, player.y - 20))
         can_use = True
     else:
         can_use = False
+
+    # персонажи
+    cords_data = (global_xyz, data)
+    if cords_data in schedule.characters:
+        if character.name == -1:
+            character = objects.characters[schedule.characters[cords_data]]
+            character = entities.AnimatedEntity(0, 0, anim_counter, character[3] * k, character[4] * k, character[1] * k,
+                                             character[2] * k, global_xyz, 'character', data)
+            character_render = objects.character_renders[character.name]
+    else:
+        character = AnimatedEntity(0, 0, anim_counter, -99, -99, 1, 1, -1, -1)
+        character_render = objects.character_renders[character.name]
+    if character.x - usage < player.x < character.x + character.size_x + usage:
+        screen.blit(action_font.render('нажмите E для взаимодействия', False, 'Red'), (player.x + 60, player.y - 20))
+        can_interact = True
+    else:
+        can_interact = False
 
     # кнопки передвижения
     if keys[pygame.K_a] and player.x > 0 and (
@@ -264,6 +291,11 @@ while True:
                 else:
                     sound = sounds.sound['fail']
                     sound.play()
+            if event.key == pygame.K_e and can_interact:
+                pause = True
+                i = 0
+                dialogue = True
+
             if event.key == pygame.K_q:
                 selected += 1
                 if selected + 1 > len(objects.inventory):
@@ -285,6 +317,13 @@ while True:
                 footstep.stop()
                 footstep.play(loops=-1)
         if event.type == pygame.KEYDOWN:
+            if dialogue:
+                print(schedule.dialogues[data, (character.name)][i])
+                i += 1
+                if i == len(schedule.dialogues[data, (character.name)]):
+                    pause = False
+                    dialogue = False
+
             if event.key == pygame.K_F11:
                 fullscreen = not fullscreen
                 if fullscreen:
@@ -294,5 +333,5 @@ while True:
                 player.y = 100 * k
             if event.key == pygame.K_F1:
                 debug = not debug
-            if event.key == pygame.K_ESCAPE:
+            if event.key == pygame.K_ESCAPE and not dialogue:
                 pause = not pause

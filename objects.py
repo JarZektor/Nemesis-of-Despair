@@ -25,7 +25,7 @@ impasses = [
 ]
 items = {
     (0, 0, 1): ['тестовый_предмет', 150, 150, 100, 200],
-    (2, 1, 0): ['тестовый_предмет1', 150, 150, 100, 200]
+    (2, 0, 0): ['тестовый_предмет1', 150, 150, 100, 200]
 }
 inventory = ['1r', 'вентиль']
 puzzles = {
@@ -35,3 +35,11 @@ puzzles_renders = {
     -1: animations.empty_render,
     'вентиль': animations.steam
 }
+characters = {
+    'Рик': ('Рик', 200, 400, 600, 50)
+}
+character_renders = {
+    -1: animations.empty_render,
+    'Рик': animations.rick
+}
+

@@ -84,3 +84,20 @@ steam = [
     pygame.image.load('images/puzzles/steam/steam_wall_14.png'),  # 14
     pygame.image.load('images/puzzles/steam/steam_wall_15.png')   # 15
 ]
+rick = [
+    pygame.image.load('images/characters/Rick/walk/walk_1.png'),   # 1
+    pygame.image.load('images/characters/Rick/walk/walk_2.png'),   # 2
+    pygame.image.load('images/characters/Rick/walk/walk_3.png'),   # 3
+    pygame.image.load('images/characters/Rick/walk/walk_4.png'),   # 4
+    pygame.image.load('images/characters/Rick/walk/walk_5.png'),   # 5
+    pygame.image.load('images/characters/Rick/walk/walk_6.png'),   # 6
+    pygame.image.load('images/characters/Rick/walk/walk_1.png'),   # 7
+    pygame.image.load('images/characters/Rick/walk/walk_1.png'),   # 8
+    pygame.image.load('images/characters/Rick/walk/walk_1.png'),   # 9
+    pygame.image.load('images/characters/Rick/walk/walk_1.png'),  # 10
+    pygame.image.load('images/characters/Rick/walk/walk_1.png'),  # 11
+    pygame.image.load('images/characters/Rick/walk/walk_1.png'),  # 12
+    pygame.image.load('images/characters/Rick/walk/walk_1.png'),  # 13
+    pygame.image.load('images/characters/Rick/walk/walk_1.png'),  # 14
+    pygame.image.load('images/characters/Rick/walk/walk_1.png')   # 15
+]
