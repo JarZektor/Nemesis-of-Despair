@@ -29,13 +29,16 @@ pygame.display.set_icon(pygame.image.load('images/icon.png'))
 clock = pygame.time.Clock()
 
 action_font = pygame.font.Font('fonts/RookiePunk.ttf', int(28 * k))
-debug_font = pygame.font.Font('fonts/RookiePunk.ttf', int(20 * k))
+debug_font = pygame.font.Font('fonts/RookiePunk.ttf', int(16 * k))
 glitch_font = pygame.font.Font('fonts/RubikGlitch-Regular.ttf', int(20 * k))
 
-music_volume = 0  # изменять в настройках 0,5 как 100%, 1 как 200%
+music_volume = 0.3  # изменять в настройках 0,5 как 100%, 1 как 200%
 sound_volume = 1  # изменять в настройках 0,5 как 100%, 1 как 200%
 
-bg_music = random.choice(sounds.melodies)
+music = sounds.special_melodies[(0, 0, 1)]
+music.set_volume(music_volume)
+
+bg_music = random.choice(sounds.bg_melodies)
 bg_music.play()
 bg_music.set_volume(music_volume)
 
@@ -54,6 +57,7 @@ can_pickup = False
 glitch_bounds = False
 pause = False
 dialogue = False
+music_change = False
 debug = False  # можно менять в настройках
 
 # цифра перед * k - это размер объекта по x при разрешении 800x450px
@@ -69,9 +73,9 @@ minute = now_time // 60 % 60
 hour = now_time // 3600 % 24
 day = now_time // 86400 + 1
 glitch_time = 0
-puzzle = AnimatedEntity(0, 0, anim_counter, -1, -1, 1, 1, -1, -1)
+puzzle = AnimatedEntity(0, anim_counter, -1, -1, 1, 1, -1, -1)
 puzzle_render = objects.puzzles_renders[puzzle.name]
-character = AnimatedEntity(0, 0, anim_counter, -1, -1, 1, 1, -1, -1)
+character = AnimatedEntity(0, anim_counter, -1, -1, 1, 1, -1, -1)
 character_render = objects.character_renders[character.name]
 player = Player(k * 4, 0, anim_counter, 0, 0, 0, 100 * k, 100 * k, 100 * k, 350 * k)
 
@@ -87,12 +91,16 @@ if fps == 60:
     time_counter = 1
 
 while True:
+    screen_width = pygame.display.Info().current_w
+    screen_height = pygame.display.Info().current_h
+    screen_size = (screen_width, screen_height)
+    global_xy = (player.global_x, player.global_y)
+    global_xyz = (player.global_x, player.global_y, player.global_z)
     if not pause:
         minute = now_time // 60 % 60
         hour = now_time // 3600 % 24
         day = now_time // 86400 + 1
         data = (day, hour)
-        bg_music.set_volume(music_volume)
         footstep.set_volume(sound_volume)
         sound.set_volume(sound_volume)
         now_time += time_counter
@@ -100,14 +108,18 @@ while True:
     footstep_timer -= anim_counter
     if footstep_timer == 0:
         footstep.stop()
-    if not pygame.mixer.get_busy():
-        bg_music = random.choice(sounds.melodies)
+    if global_xyz in sounds.special_melodies and music_change:
+        bg_music.set_volume(0)
+        music = sounds.special_melodies[global_xyz]
+        music.set_volume(music_volume)
+        music.play()
+        music_change = False
+    elif not pygame.mixer.get_busy() or music_change:
+        music.set_volume(0)
+        bg_music = random.choice(sounds.bg_melodies)
+        bg_music.set_volume(music_volume)
         bg_music.play()
-    screen_width = pygame.display.Info().current_w
-    screen_height = pygame.display.Info().current_h
-    screen_size = (screen_width, screen_height)
-    global_xy = (player.global_x, player.global_y)
-    global_xyz = (player.global_x, player.global_y, player.global_z)
+        music_change = False
 
     try:
         screen.blit(pygame.transform.scale(pygame.image.load(
@@ -129,12 +141,6 @@ while True:
         screen.blit(glitch_font.render('не стоит мне так больше делать', False, 'Red'), (0, screen_height - 20 * k))
     if (player.global_x, player.global_y, player.global_z) != (0, 0, 0):
         glitch_bounds = False
-    # отрисовка инвентаря
-    screen.blit(pygame.transform.scale(pygame.image.load(
-        f'images/UI/inventory.png'), (80 * k, 80 * k)), (screen_width - 80 * k, 0))
-    # отрисовка предмета в инвентаре
-    screen.blit(pygame.transform.scale(pygame.image.load(
-        f'images/items/{objects.inventory[selected]}.png'), (50 * k, 50 * k)), (screen_width - 65 * k, 15 * k))
 
     # предметы взаимодействие и отрисовка
     if global_xyz in objects.items:
@@ -149,18 +155,6 @@ while True:
         can_pickup = True
     else:
         can_pickup = False
-
-    # дебаг отрисовка
-    if debug:
-        screen.blit(debug_font.render(f'Room: X{player.global_x} Y{player.global_y} Z{int(player.global_z)}',
-                                      False, 'Black'), (0, 0))
-        screen.blit(debug_font.render(f'Player: X{round(player.x, 2)} Y{player.y}',
-                                      False, 'Black'), (0, debug_font.get_height()))
-        screen.blit(debug_font.render(f'Screen: X{screen_width} Y{screen_height} k {k} fullscreen {fullscreen}',
-                                      False, 'Black'), (0, 2 * debug_font.get_height()))
-        screen.blit(debug_font.render(f'Time: d{day} h{hour} m{minute} tick {now_time}', False, 'Black'),
-                    (0, 4 * debug_font.get_height()))
-        screen.blit(debug_font.render(f'Glitch: {glitch_bounds}', False, 'Black'), (0, 3 * debug_font.get_height()))
 
     keys = pygame.key.get_pressed()
 
@@ -193,11 +187,11 @@ while True:
     if global_xyz in objects.puzzles:
         if puzzle.name == -1:
             puzzle = objects.puzzles[global_xyz]
-            puzzle = entities.AnimatedEntity(0, 0, anim_counter, puzzle[3] * k, puzzle[4] * k, puzzle[1] * k,
+            puzzle = entities.AnimatedEntity(0, anim_counter, puzzle[3] * k, puzzle[4] * k, puzzle[1] * k,
                                              puzzle[2] * k, global_xyz, 'puzzle')
             puzzle_render = objects.puzzles_renders[puzzle.name]
     else:
-        puzzle = AnimatedEntity(0, 0, anim_counter, -99, -99, 1, 1, -1, -1)
+        puzzle = AnimatedEntity(0, anim_counter, -99, -99, 1, 1, -1, -1)
         puzzle_render = objects.puzzles_renders[puzzle.name]
     if puzzle.x - usage < player.x < puzzle.x + puzzle.size_x + usage:
         screen.blit(action_font.render('нажмите E для взаимодействия', False, 'Red'), (player.x + 60, player.y - 20))
@@ -210,11 +204,11 @@ while True:
     if cords_data in schedule.characters:
         if character.name == -1:
             character = objects.characters[schedule.characters[cords_data]]
-            character = entities.AnimatedEntity(0, 0, anim_counter, character[3] * k, character[4] * k, character[1] * k,
+            character = entities.AnimatedEntity(0, anim_counter, character[3] * k, character[4] * k, character[1] * k,
                                              character[2] * k, global_xyz, 'character', data)
             character_render = objects.character_renders[character.name]
     else:
-        character = AnimatedEntity(0, 0, anim_counter, -99, -99, 1, 1, -1, -1)
+        character = AnimatedEntity(0, anim_counter, -99, -99, 1, 1, -1, -1)
         character_render = objects.character_renders[character.name]
     if character.x - usage < player.x < character.x + character.size_x + usage:
         screen.blit(action_font.render('нажмите E для взаимодействия', False, 'Red'), (player.x + 60, player.y - 20))
@@ -260,8 +254,30 @@ while True:
     else:
         can_enter = False
 
-    if pause:
-        screen.blit(pygame.transform.scale(pygame.image.load(f'images/UI/pause_screen.png'), screen_size), (0, 0))
+    # дебаг отрисовка
+    if debug:
+        screen.blit(debug_font.render(f'Room: X{player.global_x} Y{player.global_y} Z{int(player.global_z)}',
+                                      False, 'Black'), (0, 0))
+        screen.blit(debug_font.render(f'Player: X{round(player.x, 2)} Y{player.y}',
+                                      False, 'Black'), (0, debug_font.get_height()))
+        screen.blit(debug_font.render(f'Screen: X{screen_width} Y{screen_height} k {k} fullscreen {fullscreen}',
+                                      False, 'Black'), (0, 2 * debug_font.get_height()))
+        screen.blit(debug_font.render(f'Time: d{day} h{hour} m{minute} tick {now_time}', 
+                                      False, 'Black'), (0, 3 * debug_font.get_height()))
+        screen.blit(debug_font.render(f'Glitch: {glitch_bounds}', False, 'Black'), (0, 7 * debug_font.get_height()))
+        screen.blit(debug_font.render(f'Music change: {music_change}', False, 'Black'), (0, 6 * debug_font.get_height()))
+        screen.blit(debug_font.render(f'Music volume: {music_volume}', False, 'Black'), (0, 5 * debug_font.get_height()))
+        screen.blit(debug_font.render(f'Sounds volume: {sound_volume}', False, 'Black'), (0, 4 * debug_font.get_height()))
+        screen.blit(debug_font.render(f'Inventory item: {objects.inventory[selected]}', False, 'Black'), (0, 8 * debug_font.get_height()))
+        screen.blit(debug_font.render(f'Puzzle: {puzzle.name}', False, 'Black'), (0, 9 * debug_font.get_height()))
+        screen.blit(debug_font.render(f'Character: {character.name}', False, 'Black'), (0, 10 * debug_font.get_height()))
+
+    # отрисовка инвентаря
+    screen.blit(pygame.transform.scale(pygame.image.load(
+        f'images/UI/inventory.png'), (80 * k, 80 * k)), (screen_width - 80 * k, 0))
+    # отрисовка предмета в инвентаре
+    screen.blit(pygame.transform.scale(pygame.image.load(
+        f'images/items/{objects.inventory[selected]}.png'), (50 * k, 50 * k)), (screen_width - 65 * k, 15 * k))
 
     pygame.display.update()
     # прочее и кнопки действия
@@ -274,6 +290,7 @@ while True:
         if event.type == pygame.KEYDOWN and not pause:
             if event.key == pygame.K_e and can_enter:
                 player.global_z = not player.global_z
+                music_change = True
                 sound = sounds.sound['door']
                 sound.play()
             if event.key == pygame.K_e and can_pickup:

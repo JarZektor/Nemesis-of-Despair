@@ -22,9 +22,8 @@ class Entity:
 
 
 class AnimatedEntity(Entity):
-    def __init__(self, speed, anim, anim_counter, x, y, sx, sy, entity_id, type, data=(0, 0)):
+    def __init__(self, anim, anim_counter, x, y, sx, sy, entity_id, type, data=(0, 0)):
         super().__init__(x, y, sx, sy, entity_id, type, data)
-        self.speed = speed
         self.anim = anim
         self.anim_counter = anim_counter
 
@@ -36,7 +35,8 @@ class AnimatedEntity(Entity):
 
 class Player(AnimatedEntity):
     def __init__(self, speed, anim, anim_counter, gx, gy, gz, x, y, sx, sy):
-        super().__init__(speed, anim, anim_counter, x, y, sx, sy, (gx, gy, gz), 'player')
+        super().__init__(anim, anim_counter, x, y, sx, sy, (gx, gy, gz), 'player')
+        self.speed = speed
         self.global_x = gx
         self.global_y = gy
         self.global_z = gz
