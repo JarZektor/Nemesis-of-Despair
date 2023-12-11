@@ -6,10 +6,14 @@ import entities
 import sounds
 import objects
 import schedule
-from entities import Entity, AnimatedEntity, Player
+from utility import lore_fragment, lore_restart
+from entities import  Entity, AnimatedEntity, Player
+
+lore_restart('story')
+lore_restart('Рик')
 
 pygame.init()
-screen_size = (1280, 720)  # можно изменять в настройках, но работать будет некорректно (частично)
+screen_size = (800, 450)  # можно изменять в настройках, но работать будет некорректно (частично)
 # варианты: (800, 450), (960, 540), (1280, 720), (16, 9) - последнее самое стабильное, но разрабатывалось в расчёте на 1
 setup_screen_width = screen_size[0]
 setup_screen_height = screen_size[1]
@@ -29,6 +33,7 @@ pygame.display.set_icon(pygame.image.load('images/icon.png'))
 clock = pygame.time.Clock()
 
 action_font = pygame.font.Font('fonts/RookiePunk.ttf', int(28 * k))
+dialogue_font = pygame.font.Font('fonts/RookiePunk.ttf', int(28 * k))
 debug_font = pygame.font.Font('fonts/RookiePunk.ttf', int(16 * k))
 glitch_font = pygame.font.Font('fonts/RubikGlitch-Regular.ttf', int(20 * k))
 
@@ -57,6 +62,7 @@ can_pickup = False
 glitch_bounds = False
 pause = False
 dialogue = False
+cutscene = False
 music_change = False
 debug = False  # можно менять в настройках
 
@@ -77,7 +83,7 @@ puzzle = AnimatedEntity(0, anim_counter, -1, -1, 1, 1, -1, -1)
 puzzle_render = objects.puzzles_renders[puzzle.name]
 character = AnimatedEntity(0, anim_counter, -1, -1, 1, 1, -1, -1)
 character_render = objects.character_renders[character.name]
-player = Player(k * 4, 0, anim_counter, 0, 0, 0, 100 * k, 100 * k, 100 * k, 350 * k)
+player = Player(k * 6, 0, anim_counter, 0, 0, 0, 100 * k, 100 * k, 100 * k, 350 * k)
 
 player.global_x = 0
 player.global_y = 0
@@ -161,7 +167,7 @@ while True:
     # анимации
     if global_anim == 28:
         global_anim = 0
-    else:
+    elif not pause:
         global_anim += anim_counter
         player.next_frame()
         puzzle.next_frame()
@@ -253,6 +259,12 @@ while True:
         can_enter = True
     else:
         can_enter = False
+    
+    if dialogue:
+        screen.blit(pygame.transform.scale(pygame.image.load('images/dialogues/Игрок.png'), (100 * k, 100 * k)), (0, 350 * k))
+        screen.blit(pygame.transform.scale(pygame.image.load('images/dialogues/Фон.png'), (600 * k, 100 * k)), (100 * k, 350 * k))
+        screen.blit(pygame.transform.scale(pygame.image.load('images/dialogues/Рик.png'), (100 * k, 100 * k)), (700 * k, 350 * k))
+        screen.blit(dialogue_font.render(phrase, False, 'Red'), (110 * k, 360 * k))
 
     # дебаг отрисовка
     if debug:
@@ -278,6 +290,9 @@ while True:
     # отрисовка предмета в инвентаре
     screen.blit(pygame.transform.scale(pygame.image.load(
         f'images/items/{objects.inventory[selected]}.png'), (50 * k, 50 * k)), (screen_width - 65 * k, 15 * k))
+    # экран паузы
+    if pause and not dialogue and not cutscene:
+        screen.blit(pygame.transform.scale(pygame.image.load(f'images/UI/pause_screen.png'), screen_size), (0, 0))
 
     pygame.display.update()
     # прочее и кнопки действия
@@ -310,7 +325,6 @@ while True:
                     sound.play()
             if event.key == pygame.K_e and can_interact:
                 pause = True
-                i = 0
                 dialogue = True
 
             if event.key == pygame.K_q:
@@ -335,9 +349,10 @@ while True:
                 footstep.play(loops=-1)
         if event.type == pygame.KEYDOWN:
             if dialogue:
-                print(schedule.dialogues[data, (character.name)][i])
-                i += 1
-                if i == len(schedule.dialogues[data, (character.name)]):
+                phrase = lore_fragment(character.name)
+                if phrase:
+                    print(phrase)
+                else:
                     pause = False
                     dialogue = False
 

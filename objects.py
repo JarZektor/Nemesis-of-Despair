@@ -1,5 +1,9 @@
 import animations
 
+cutscenes = {
+    'tick': 'cutscene name',
+    -1: 'cutscenes/start cutscene.mp4'
+}
 ladders_up = [
     (1, 0)
 ]
