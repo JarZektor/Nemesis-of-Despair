@@ -38,13 +38,22 @@ class Window(QMainWindow):
         self.setWindowTitle('Экран загрузки pygame')
         self.setGeometry(500, 100, 1000, 1000)
         self.setFixedSize(500, 500)
+<<<<<<< HEAD
         self.setWindowIcon(QIcon('images/icon.png'))
+=======
+        self.setWindowIcon(QIcon('icon.png'))
+>>>>>>> 3786a7d0eba59fc36505cfbf20e0c41625d89004
         self.setStyleSheet(self.css)
 
         # Изображение логотипа игры
         self.ask_accept = QLabel(self)
+<<<<<<< HEAD
         self.ask_accept.setGeometry(0, -10, 500, 240)
         self.ask_accept.setStyleSheet("background-image: url(images/NoD_launcher.png)")
+=======
+        self.ask_accept.setGeometry(0, 0, 500, 200)
+        self.ask_accept.setStyleSheet("background-image: url(test.png)")
+>>>>>>> 3786a7d0eba59fc36505cfbf20e0c41625d89004
 
         # Выпадающий список разрешений
         self.size_win = QComboBox(self)
@@ -129,7 +138,11 @@ class Window(QMainWindow):
         # label для отображения управления
         self.controls = QLabel(self)
         self.controls.setGeometry(0, 0, 500, 500)
+<<<<<<< HEAD
         self.controls.setStyleSheet("background-image: url(images/setting.png)")
+=======
+        self.controls.setStyleSheet("background-image: url(setting.png)")
+>>>>>>> 3786a7d0eba59fc36505cfbf20e0c41625d89004
         self.controls.hide()
 
         # Кнопка возврата в главное меню
