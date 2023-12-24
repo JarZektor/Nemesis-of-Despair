@@ -6,11 +6,12 @@ import entities
 import sounds
 import objects
 import schedule
-from utility import lore_fragment, lore_restart
+from utility import lore_fragment, lore_restart, cut_scene_player, quest_restart
 from entities import  Entity, AnimatedEntity, Player
 
 lore_restart('story')
 lore_restart('Рик')
+quest_restart('Рик')
 
 pygame.init()
 screen_size = (800, 450)  # можно изменять в настройках, но работать будет некорректно (частично)
@@ -74,7 +75,7 @@ door_size = 100 * k
 global_anim = 0
 anim_counter = 2
 time_counter = 2
-now_time = 0
+now_time = 0#-2
 minute = now_time // 60 % 60
 hour = now_time // 3600 % 24
 day = now_time // 86400 + 1
@@ -126,6 +127,15 @@ while True:
         bg_music.set_volume(music_volume)
         bg_music.play()
         music_change = False
+    if now_time in objects.cutscenes:
+        print(1)
+        music.set_volume(0)
+        bg_music.set_volume(0)
+        pause = True
+        cut_scene_player(objects.cutscenes[now_time], screen_size, sound_volume)
+        music.set_volume(music_volume)
+        bg_music.set_volume(music_volume)
+        pause = False
 
     try:
         screen.blit(pygame.transform.scale(pygame.image.load(
@@ -349,7 +359,7 @@ while True:
                 footstep.play(loops=-1)
         if event.type == pygame.KEYDOWN:
             if dialogue:
-                phrase = lore_fragment(character.name)
+                phrase = lore_fragment(character.name, now_time)
                 if phrase:
                     print(phrase)
                 else:
@@ -359,11 +369,19 @@ while True:
             if event.key == pygame.K_F11:
                 fullscreen = not fullscreen
                 if fullscreen:
-                    screen = pygame.display.set_mode(screen_size, pygame.FULLSCREEN)
+                    screen = pygame.display.set_mode((screen_size), pygame.FULLSCREEN)
                 else:
                     screen = pygame.display.set_mode((setup_screen_width, setup_screen_height))
                 player.y = 100 * k
             if event.key == pygame.K_F1:
                 debug = not debug
+            if event.key == pygame.K_F2:
+                music.set_volume(0)
+                bg_music.set_volume(0)
+                pause = True
+                cut_scene_player("cutscenes/start cutscene.mp", screen_size, sound_volume)
+                music.set_volume(music_volume)
+                bg_music.set_volume(music_volume)
+                pause = False
             if event.key == pygame.K_ESCAPE and not dialogue:
                 pause = not pause
