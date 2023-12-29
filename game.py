@@ -6,6 +6,7 @@ import entities
 import sounds
 import objects
 import schedule
+import json
 from utility import lore_fragment, lore_restart, cut_scene_player, quest_restart
 from entities import  Entity, AnimatedEntity, Player
 
@@ -13,8 +14,14 @@ lore_restart('story')
 lore_restart('Рик')
 quest_restart('Рик')
 
+with open("values.json", "r") as file:
+    data = json.load(file)['object_value']
+
 pygame.init()
-screen_size = (800, 450)  # можно изменять в настройках, но работать будет некорректно (частично)
+screen_size = []
+for i in data[2].split('x'):
+    screen_size.append(int(i))
+# можно изменять в настройках, но работать будет некорректно (частично)
 # варианты: (800, 450), (960, 540), (1280, 720), (16, 9) - последнее самое стабильное, но разрабатывалось в расчёте на 1
 setup_screen_width = screen_size[0]
 setup_screen_height = screen_size[1]
@@ -24,7 +31,7 @@ screen_height = setup_screen_height
 # коэфициент для разных разрешений так как разработка идёт на разрешении 800x450px
 k = setup_screen_height / 450  # НЕ МЕНЯТЬ!!!
 
-fullscreen = False  # можно изменять в настройках, но работать будет некорректно
+fullscreen = data[0]  # можно изменять в настройках, но работать будет некорректно
 if fullscreen:
     screen = pygame.display.set_mode((screen_width, screen_height), flags=pygame.FULLSCREEN)
 else:
@@ -38,9 +45,8 @@ dialogue_font = pygame.font.Font('fonts/RookiePunk.ttf', int(28 * k))
 debug_font = pygame.font.Font('fonts/RookiePunk.ttf', int(16 * k))
 glitch_font = pygame.font.Font('fonts/RubikGlitch-Regular.ttf', int(20 * k))
 
-music_volume = 0.3  # изменять в настройках 0,5 как 100%, 1 как 200%
-sound_volume = 1  # изменять в настройках 0,5 как 100%, 1 как 200%
-
+music_volume = data[4] / 100 * data[6] / 100 # изменять в настройках 0,5 как 100%, 1 как 200%
+sound_volume = data[5] / 100 * data[6] / 100# изменять в настройках 0,5 как 100%, 1 как 200%
 music = sounds.special_melodies[(0, 0, 1)]
 music.set_volume(music_volume)
 
@@ -65,7 +71,7 @@ pause = False
 dialogue = False
 cutscene = False
 music_change = False
-debug = False  # можно менять в настройках
+debug = data[1]  # можно менять в настройках
 
 # цифра перед * k - это размер объекта по x при разрешении 800x450px
 usage = 50 * k
@@ -90,7 +96,7 @@ player.global_x = 0
 player.global_y = 0
 player.global_z = False  # == 1 только в специальных комнатах
 
-fps = 30  # можно изменять в настройках, варианты: 30, 60
+fps = int(data[3][:2])  # можно изменять в настройках, варианты: 30, 60
 if fps == 60:
     player.speed //= 2
     player.anim_counter = 1
@@ -138,17 +144,13 @@ while True:
         pause = False
 
     try:
-        screen.blit(pygame.transform.scale(pygame.image.load(
-            f'images/backgrounds/X{player.global_x}Y{player.global_y}Z{int(player.global_z)}.png'), screen_size),
-            (0, 0))
+        screen.blit(pygame.transform.scale(pygame.image.load(f'images/backgrounds/X{player.global_x}Y{player.global_y}Z{int(player.global_z)}.png'), screen_size), (0, 0))
     except FileNotFoundError:
         print(global_xyz)
         player.global_x = 0
         player.global_y = 0
         player.global_z = 0
-        screen.blit(pygame.transform.scale(pygame.image.load(
-            f'images/backgrounds/X{player.global_x}Y{player.global_y}Z{int(player.global_z)}.png'), screen_size),
-            (0, 0))
+        screen.blit(pygame.transform.scale(pygame.image.load(f'images/backgrounds/X{player.global_x}Y{player.global_y}Z{int(player.global_z)}.png'), screen_size), (0, 0))
         glitch_bounds = True
 
     if glitch_bounds:
@@ -162,8 +164,7 @@ while True:
     if global_xyz in objects.items:
         item = objects.items[global_xyz]
         item = Entity(item[3], item[4], item[1], item[2], global_xyz, 'item')
-        screen.blit(pygame.transform.scale(pygame.image.load(f'images/items/{item.name}.png'),
-                                           (item.size_x * k, item.size_y * k)), (item.x * k, item.y * k))
+        screen.blit(pygame.transform.scale(pygame.image.load(f'images/items/{item.name}.png'), (item.size_x * k, item.size_y * k)), (item.x * k, item.y * k))
     else:
         item = Entity(-99, -99, -99, -99, -99, -99)  # создаём фантомный объект за пределами экрана для избежания поломок
     if item.x - usage < player.x < item.x + item.size_x + usage:
@@ -182,29 +183,23 @@ while True:
         player.next_frame()
         puzzle.next_frame()
         character.next_frame()
-    screen.blit(pygame.transform.scale(puzzle_render[puzzle.anim // 2], puzzle.size),
-                (puzzle.x, puzzle.y))
+    screen.blit(pygame.transform.scale(puzzle_render[puzzle.anim // 2], puzzle.size), (puzzle.x, puzzle.y))
     
-    screen.blit(pygame.transform.scale(character_render[character.anim // 2], character.size),
-                (character.x + usage, character.y))
+    screen.blit(pygame.transform.scale(character_render[character.anim // 2], character.size), (character.x + usage, character.y))
     
 
     if keys[pygame.K_a] and not pause:
-        screen.blit(pygame.transform.scale(animations.player_move_left[player.anim // 2], player.size),
-                    (player.x, player.y))
+        screen.blit(pygame.transform.scale(animations.player_move_left[player.anim // 2], player.size), (player.x, player.y))
     elif keys[pygame.K_d] and not pause:
-        screen.blit(pygame.transform.scale(animations.player_move_right[player.anim // 2], player.size),
-                    (player.x, player.y))
+        screen.blit(pygame.transform.scale(animations.player_move_right[player.anim // 2], player.size), (player.x, player.y))
     else:
-        screen.blit(pygame.transform.scale(animations.player_idle[player.anim // 2], player.size),
-                    (player.x, player.y))
+        screen.blit(pygame.transform.scale(animations.player_idle[player.anim // 2], player.size), (player.x, player.y))
 
     # головоломки
     if global_xyz in objects.puzzles:
         if puzzle.name == -1:
             puzzle = objects.puzzles[global_xyz]
-            puzzle = entities.AnimatedEntity(0, anim_counter, puzzle[3] * k, puzzle[4] * k, puzzle[1] * k,
-                                             puzzle[2] * k, global_xyz, 'puzzle')
+            puzzle = entities.AnimatedEntity(0, anim_counter, puzzle[3] * k, puzzle[4] * k, puzzle[1] * k, puzzle[2] * k, global_xyz, 'puzzle')
             puzzle_render = objects.puzzles_renders[puzzle.name]
     else:
         puzzle = AnimatedEntity(0, anim_counter, -99, -99, 1, 1, -1, -1)
@@ -220,8 +215,7 @@ while True:
     if cords_data in schedule.characters:
         if character.name == -1:
             character = objects.characters[schedule.characters[cords_data]]
-            character = entities.AnimatedEntity(0, anim_counter, character[3] * k, character[4] * k, character[1] * k,
-                                             character[2] * k, global_xyz, 'character', data)
+            character = entities.AnimatedEntity(0, anim_counter, character[3] * k, character[4] * k, character[1] * k, character[2] * k, global_xyz, 'character', data)
             character_render = objects.character_renders[character.name]
     else:
         character = AnimatedEntity(0, anim_counter, -99, -99, 1, 1, -1, -1)
@@ -278,14 +272,10 @@ while True:
 
     # дебаг отрисовка
     if debug:
-        screen.blit(debug_font.render(f'Room: X{player.global_x} Y{player.global_y} Z{int(player.global_z)}',
-                                      False, 'Black'), (0, 0))
-        screen.blit(debug_font.render(f'Player: X{round(player.x, 2)} Y{player.y}',
-                                      False, 'Black'), (0, debug_font.get_height()))
-        screen.blit(debug_font.render(f'Screen: X{screen_width} Y{screen_height} k {k} fullscreen {fullscreen}',
-                                      False, 'Black'), (0, 2 * debug_font.get_height()))
-        screen.blit(debug_font.render(f'Time: d{day} h{hour} m{minute} tick {now_time}', 
-                                      False, 'Black'), (0, 3 * debug_font.get_height()))
+        screen.blit(debug_font.render(f'Room: X{player.global_x} Y{player.global_y} Z{int(player.global_z)}', False, 'Black'), (0, 0))
+        screen.blit(debug_font.render(f'Player: X{round(player.x, 2)} Y{player.y}', False, 'Black'), (0, debug_font.get_height()))
+        screen.blit(debug_font.render(f'Screen: X{screen_width} Y{screen_height} k {k} fullscreen {fullscreen}', False, 'Black'), (0, 2 * debug_font.get_height()))
+        screen.blit(debug_font.render(f'Time: d{day} h{hour} m{minute} tick {now_time}',  False, 'Black'), (0, 3 * debug_font.get_height()))
         screen.blit(debug_font.render(f'Glitch: {glitch_bounds}', False, 'Black'), (0, 7 * debug_font.get_height()))
         screen.blit(debug_font.render(f'Music change: {music_change}', False, 'Black'), (0, 6 * debug_font.get_height()))
         screen.blit(debug_font.render(f'Music volume: {music_volume}', False, 'Black'), (0, 5 * debug_font.get_height()))
@@ -295,11 +285,9 @@ while True:
         screen.blit(debug_font.render(f'Character: {character.name}', False, 'Black'), (0, 10 * debug_font.get_height()))
 
     # отрисовка инвентаря
-    screen.blit(pygame.transform.scale(pygame.image.load(
-        f'images/UI/inventory.png'), (80 * k, 80 * k)), (screen_width - 80 * k, 0))
+    screen.blit(pygame.transform.scale(pygame.image.load(f'images/UI/inventory.png'), (80 * k, 80 * k)), (screen_width - 80 * k, 0))
     # отрисовка предмета в инвентаре
-    screen.blit(pygame.transform.scale(pygame.image.load(
-        f'images/items/{objects.inventory[selected]}.png'), (50 * k, 50 * k)), (screen_width - 65 * k, 15 * k))
+    screen.blit(pygame.transform.scale(pygame.image.load(f'images/items/{objects.inventory[selected]}.png'), (50 * k, 50 * k)), (screen_width - 65 * k, 15 * k))
     # экран паузы
     if pause and not dialogue and not cutscene:
         screen.blit(pygame.transform.scale(pygame.image.load(f'images/UI/pause_screen.png'), screen_size), (0, 0))

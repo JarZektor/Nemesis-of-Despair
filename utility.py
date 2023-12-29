@@ -71,6 +71,9 @@ def lore_fragment(TABLE: str, time) -> str:
     connection.commit()
     connection.close()
 
+    if text[0][0] == -1:
+        return (check_quest(TABLE + '_quest', time))
+
     if text:
         return text[0][0]
 
