@@ -85,19 +85,19 @@ steam = [
     pygame.image.load('images/puzzles/steam/steam_wall_15.png')   # 15
 ]
 rick = [
-    pygame.image.load('images/player/idle/1ii.png'),  # 1
-    pygame.image.load('images/player/idle/1ii.png'),  # 2
-    pygame.image.load('images/player/idle/1ii.png'),  # 3
-    pygame.image.load('images/player/idle/1ii.png'),  # 4
-    pygame.image.load('images/player/idle/1ii.png'),  # 5
-    pygame.image.load('images/player/idle/1ii.png'),  # 6
-    pygame.image.load('images/player/idle/1ii.png'),  # 7
-    pygame.image.load('images/player/idle/1ii.png'),  # 8
-    pygame.image.load('images/player/idle/2ii.png'),  # 9
-    pygame.image.load('images/player/idle/2ii.png'),  # 10
-    pygame.image.load('images/player/idle/2ii.png'),  # 11
-    pygame.image.load('images/player/idle/2ii.png'),  # 12
-    pygame.image.load('images/player/idle/2ii.png'),  # 13
-    pygame.image.load('images/player/idle/2ii.png'),  # 14
-    pygame.image.load('images/player/idle/2ii.png')  # 15
+    pygame.image.load('images/characters/Rick/idle/1i.png'),  # 1
+    pygame.image.load('images/characters/Rick/idle/1i.png'),  # 2
+    pygame.image.load('images/characters/Rick/idle/1i.png'),  # 3
+    pygame.image.load('images/characters/Rick/idle/1i.png'),  # 4
+    pygame.image.load('images/characters/Rick/idle/1i.png'),  # 5
+    pygame.image.load('images/characters/Rick/idle/1i.png'),  # 6
+    pygame.image.load('images/characters/Rick/idle/1i.png'),  # 7
+    pygame.image.load('images/characters/Rick/idle/1i.png'),  # 8
+    pygame.image.load('images/characters/Rick/idle/2i.png'),  # 9
+    pygame.image.load('images/characters/Rick/idle/2i.png'),  # 10
+    pygame.image.load('images/characters/Rick/idle/2i.png'),  # 11
+    pygame.image.load('images/characters/Rick/idle/2i.png'),  # 12
+    pygame.image.load('images/characters/Rick/idle/2i.png'),  # 13
+    pygame.image.load('images/characters/Rick/idle/2i.png'),  # 14
+    pygame.image.load('images/characters/Rick/idle/2i.png'),  # 15
 ]

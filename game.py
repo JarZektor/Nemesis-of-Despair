@@ -81,8 +81,6 @@ def start():
     screen_size = []
     for i in data[2].split('x'):
         screen_size.append(int(i))
-    # можно изменять в настройках, но работать будет некорректно (частично)
-    # варианты: (800, 450), (960, 540), (1280, 720), (16, 9) - последнее самое стабильное, но разрабатывалось в расчёте на 1
     setup_screen_width = screen_size[0]
     setup_screen_height = screen_size[1]
     screen_width = setup_screen_width
@@ -91,7 +89,10 @@ def start():
     # коэфициент для разных разрешений так как разработка идёт на разрешении 800x450px
     k = setup_screen_height / 450  # НЕ МЕНЯТЬ!!!
 
-    fullscreen = data[0]  # можно изменять в настройках, но работать будет некорректно
+    fullscreen = data[0]
+    fullscreen_error = False
+    if tuple(screen_size) in [(800, 450), (960, 540)]:
+        fullscreen = False
     if fullscreen:
         screen = pygame.display.set_mode((screen_width, screen_height), flags=pygame.FULLSCREEN)
     else:
@@ -105,8 +106,8 @@ def start():
     debug_font = pygame.font.Font('fonts/RookiePunk.ttf', int(16 * k))
     glitch_font = pygame.font.Font('fonts/RubikGlitch-Regular.ttf', int(20 * k))
 
-    music_volume = data[4] / 100 * data[6] / 100 # изменять в настройках 0,5 как 100%, 1 как 200%
-    sound_volume = data[5] / 100 * data[6] / 100# изменять в настройках 0,5 как 100%, 1 как 200%
+    music_volume = data[4] / 100 * data[6] / 100 # music_volume% * master_volume%
+    sound_volume = data[5] / 100 * data[6] / 100
 
     bg_music = random.choice(sounds.bg_melodies)
     bg_music.play()
@@ -132,12 +133,12 @@ def start():
     debug_console = False
     console_text = ''
     text_output = ['']
-    debug = data[1]  # можно менять в настройках
+    debug = data[1]
 
     # цифра перед * k - это размер объекта по x при разрешении 800x450px
     usage = 50 * k
     ladder_side = 200 * k
-    door_size = 100 * k
+    door_size = 150 * k
 
     global_anim = 0
     anim_counter = 2
@@ -146,7 +147,6 @@ def start():
     minute = now_time // 60 % 60
     hour = now_time // 3600 % 24
     day = now_time // 86400 + 1
-    glitch_time = 0
     puzzle = AnimatedEntity(0, anim_counter, -1, -1, 1, 1, -1, -1)
     puzzle_render = objects.puzzles_renders[puzzle.name]
     character = AnimatedEntity(0, anim_counter, -1, -1, 1, 1, -1, -1)
@@ -187,7 +187,6 @@ def start():
             bg_music.set_volume(music_volume)
             bg_music.play()
         if now_time in objects.cutscenes:
-            print(1)
             bg_music.set_volume(0)
             pause = True
             cut_scene_player(objects.cutscenes[now_time], screen_size, sound_volume)
@@ -197,7 +196,6 @@ def start():
         try:
             screen.blit(pygame.transform.scale(pygame.image.load(f'images/backgrounds/X{player.global_x}Y{player.global_y}Z{int(player.global_z)}.png'), screen_size), (0, 0))
         except FileNotFoundError:
-            print(global_xyz)
             player.global_x = 22
             player.global_y = 8
             player.global_z = 0
@@ -282,8 +280,7 @@ def start():
                 player.x < puzzle.x + 10 or player.x > puzzle.x + puzzle.size_x) and not pause:
             player.x -= player.speed
             footstep_timer = -1
-        if keys[pygame.K_d] and player.x < screen_width - player.size_x and (
-                player.x < puzzle.x or player.x > puzzle.x + puzzle.size_x - 10) and not pause:
+        if keys[pygame.K_d] and player.x < screen_width - player.size_x and (player.x < puzzle.x or player.x > puzzle.x + puzzle.size_x - 10) and not pause:
             player.x += player.speed
             footstep_timer = -1
 
@@ -291,8 +288,7 @@ def start():
         if player.x < 20 * k and not ((player.global_x - 1, player.global_y) in objects.impasses) and not player.global_z:
             player.global_x -= 1
             player.x = screen_width - screen_width // 8 - player.size_x
-        if player.x > screen_width - player.size_x - 20 * k and \
-                not ((player.global_x + 1, player.global_y) in objects.impasses) and not player.global_z:
+        if player.x > screen_width - player.size_x - 20 * k and not ((player.global_x + 1, player.global_y) in objects.impasses) and not player.global_z:
             player.global_x += 1
             player.x = 100 * k
 
@@ -316,10 +312,10 @@ def start():
             can_enter = False
 
         if dialogue:
-            screen.blit(pygame.transform.scale(pygame.image.load('images/dialogues/Игрок.png'), (100 * k, 100 * k)), (0, 350 * k))
-            screen.blit(pygame.transform.scale(pygame.image.load('images/dialogues/Фон.png'), (600 * k, 100 * k)), (100 * k, 350 * k))
-            screen.blit(pygame.transform.scale(pygame.image.load('images/dialogues/Рик.png'), (100 * k, 100 * k)), (700 * k, 350 * k))
-            screen.blit(dialogue_font.render(phrase, False, 'Red'), (200 * k, 360 * k))
+            screen.blit(pygame.transform.scale(pygame.image.load(f'images/dialogues/Игрок.png'), (100 * k, 100 * k)), (0, 350 * k))
+            screen.blit(pygame.transform.scale(pygame.image.load(f'images/dialogues/Фон.png'), (600 * k, 100 * k)), (100 * k, 350 * k))
+            screen.blit(pygame.transform.scale(pygame.image.load(f'images/dialogues/{character.name}.png'), (100 * k, 100 * k)), (700 * k, 350 * k))
+            screen.blit(dialogue_font.render(phrase, False, 'Red'), (110 * k, 360 * k))
 
         # дебаг отрисовка
         if debug:
@@ -327,7 +323,7 @@ def start():
             debug_sprite = pygame.sprite.Sprite()
             debug_sprite.image = pygame.transform.scale(pygame.image.load("images/UI/debug.jpg"), (80 * k, 80 * k))
             debug_sprite.rect = debug_sprite.image.get_rect()
-            debug_sprite.rect.x = 0
+            debug_sprite.rect.x = int(screen_width - 280 * k)
             debug_sprite.rect.y = 0
             all_sprites.add(debug_sprite)
             all_sprites.draw(screen)
@@ -352,11 +348,16 @@ def start():
                 screen.blit(debug_font.render(f'{text_output[t]}', False, 'Black'), (200*k, screen_height - 10 - (2+t) * debug_font.get_height()))
 
 
-        # отрисовка инвентаря
+        # отрисовка интерфейса
+        if fullscreen_error:
+            screen.blit(debug_font.render(f'При данном разрешении режим полного экрана не работает', False, 'Black'), (0, 0))
+            screen.blit(debug_font.render(f'Нажмите на F11 ещё раз для скрытия надписи', False, 'Black'), (0, debug_font.get_height()))
         screen.blit(pygame.transform.scale(pygame.image.load(f'images/UI/clock/{hour}.png'), (80 * k, 80 * k)), (screen_width - 180 * k, 0))
         screen.blit(pygame.transform.scale(pygame.image.load(f'images/UI/inventory.png'), (80 * k, 80 * k)), (screen_width - 80 * k, 0))
-        # отрисовка предмета в инвентаре
-        screen.blit(pygame.transform.scale(pygame.image.load(f'images/items/{objects.inventory[selected]}.png'), (50 * k, 50 * k)), (screen_width - 65 * k, 15 * k))
+        try:
+            screen.blit(pygame.transform.scale(pygame.image.load(f'images/items/{objects.inventory[selected]}.png'), (50 * k, 50 * k)), (screen_width - 65 * k, 15 * k))
+        except:
+            selected = 0
         # экран паузы
         if pause and not dialogue and not cutscene and not debug_console:
             screen.blit(pygame.transform.scale(pygame.image.load(f'images/UI/pause_screen.png'), screen_size), (0, 0))
@@ -418,16 +419,17 @@ def start():
             if event.type == pygame.KEYDOWN:
                 if dialogue:
                     phrase = lore_fragment(character.name, now_time)
-                    if phrase:
-                        print(phrase)
-                    else:
+                    if not phrase:
                         pause = False
                         dialogue = False
 
                 if event.key == pygame.K_F11:
-                    fullscreen = not fullscreen
+                    if screen_size in [(1280, 720), (1920, 1080)]:
+                        fullscreen = not fullscreen
+                    else:
+                        fullscreen_error = not fullscreen_error
                     if fullscreen:
-                        screen = pygame.display.set_mode((screen_size), pygame.FULLSCREEN)
+                        screen = pygame.display.set_mode(screen_size, pygame.FULLSCREEN)
                     else:
                         screen = pygame.display.set_mode((setup_screen_width, setup_screen_height))
                     player.y = 100 * k

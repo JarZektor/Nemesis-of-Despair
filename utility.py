@@ -83,6 +83,9 @@ def lore_fragment(TABLE: str, time):
     if flag1 and flag2:
         if text == '-2':
             text = cursor2.execute(f"""SELECT Text FROM {TABLE + '_quest'} WHERE ID={quest_id}""").fetchall()[0][0]
+            items = cursor2.execute(f"""SELECT Prime_item FROM {TABLE + '_quest'} WHERE ID={quest_id}""").fetchall()[0][0]
+            for item in json.loads(items)['response']:
+                inventory.remove(item)
             connection.close()
             connection2.close()
             return text

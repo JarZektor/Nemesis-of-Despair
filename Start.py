@@ -136,6 +136,7 @@ class Window(QMainWindow):
         # Кнопка возврата в главное меню
         self.return_setting = QPushButton('->', self)
         self.return_setting.setGeometry(470, 0, 30, 30)
+        self.return_setting.hide()
         self.return_setting.clicked.connect(self.hide_control)
 
         # Выставляем прошлые значения файлов
