@@ -1,8 +1,8 @@
 {
     "object_value": [
         false,
-        false,
-        "800x450",
+        true,
+        "1280x720",
         "30 FPS",
         30,
         100,

@@ -7,7 +7,7 @@ from objects import inventory
 
 def cut_scene_player(cut_scene_name, screen_size, sound_volume):
     cut_scene = cv2.VideoCapture(cut_scene_name + '4')
-    cut_scene_win = pygame.display.set_mode((1280, 720))#, pygame.FULLSCREEN)
+    cut_scene_win = pygame.display.set_mode((1280, 720), pygame.FULLSCREEN)
     clock = pygame.time.Clock()
     success = True
     frame_count = int(cut_scene.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -29,7 +29,6 @@ def cut_scene_player(cut_scene_name, screen_size, sound_volume):
         pygame.display.update()
 
 
-
 def lore_restart(TABLE: str):
     connection = sqlite3.connect('storyline.db')
     cursor = connection.cursor()
@@ -40,6 +39,7 @@ def lore_restart(TABLE: str):
     connection.commit()
     connection.close()
 
+
 def quest_restart(TABLE: str):
     connection = sqlite3.connect('quest.db')
     cursor = connection.cursor()
@@ -48,74 +48,62 @@ def quest_restart(TABLE: str):
     connection.close()
 
 
-def lore_fragment(TABLE: str, time) -> str:
+def lore_fragment(TABLE: str, time):
+    connection2 = sqlite3.connect('quest.db')
+    cursor2 = connection2.cursor()
+
+    flag1 = set(cursor2.execute(f"""SELECT Enabled FROM {TABLE + '_quest'}""").fetchall()) != {(0,)}
+    quest_id = cursor2.execute(f"""SELECT MIN(ID) FROM {TABLE + '_quest'} WHERE Enabled=1""").fetchall()[0][0]
+
+    text2 = cursor2.execute(f"""SELECT Prime_item FROM {TABLE + '_quest'} WHERE ID={quest_id}""").fetchall()[0][0]
+    text2 = json.loads(text2)["response"]
+    flag2 = (text2[0] != "пустота" and check_item_in_inventory(text2)) or text2[0] == "пустота"
+
     connection = sqlite3.connect('storyline.db')
     cursor = connection.cursor()
 
     id = cursor.execute(f"""SELECT ID FROM {TABLE} WHERE Activate=1""").fetchall()
+
     try:
         id = id[0][0] + 1
     except IndexError:
-        connection.commit()
-        connection.close()
-        first = check_quest(TABLE + '_quest', time)
-        second = check_quest(TABLE + '_quest', time)
-        if first == second:
-            return False
-        return first
+        return False
 
     cursor.execute(f"""UPDATE {TABLE} SET Activate=0 WHERE Activate=1""")
     cursor.execute(f"""UPDATE {TABLE} SET Activate=1 WHERE ID={id}""")
-    text = cursor.execute(f"""SELECT Text FROM {TABLE} WHERE Activate=1""").fetchall()
-
     connection.commit()
-    connection.close()
 
-    if text[0][0] == -1:
-        return (check_quest(TABLE + '_quest', time))
-
-    if text:
-        return text[0][0]
-
-    return (check_quest(TABLE + '_quest', time))
-
-def check_quest(TABLE: str, time):
-
-    connection = sqlite3.connect('quest.db')
-    cursor = connection.cursor()
-
-    text = cursor.execute(f"""SELECT Enabled FROM {TABLE}""").fetchall()
-
-    if set(text) == {(0,)}:
-        return "Мне не о чем с тобой говорить"
-    else:
-        quest_id = cursor.execute(f"""SELECT MIN(ID) FROM {TABLE} WHERE Enabled=1""").fetchall()[0][0]
-        cursor.execute(f"""UPDATE {TABLE} SET Enabled=0 WHERE ID={quest_id}""")
-
-    text = cursor.execute(f"""SELECT Timer, Activate_time FROM {TABLE} WHERE ID={quest_id}""").fetchall()[0]
-    if text[0] != 0 and time - text[1] > text[0]:
-        connection.commit()
+    try:
+        text = cursor.execute(f"""SELECT Text FROM {TABLE} WHERE Activate=1""").fetchall()[0][0]
+    except IndexError:
         connection.close()
-        return 'Время - деньги. Не хочу иметь с тобой дел'
+        connection2.close()
+        return False
 
-    text = cursor.execute(f"""SELECT Prime_item FROM {TABLE} WHERE ID={quest_id}""").fetchall()[0][0]
-    text = json.loads(text)["response"]
-    if text[0] != "пустота" and check_item_in_inventory(text):
-        return "Нет вещи - проваливай"
+    if flag1 and flag2:
+        if text == '-2':
+            text = cursor2.execute(f"""SELECT Text FROM {TABLE + '_quest'} WHERE ID={quest_id}""").fetchall()[0][0]
+            connection.close()
+            connection2.close()
+            return text
+        connection.close()
+        connection2.close()
+        return text
     else:
-        for item in text:
-            inventory.remove(item)
+        if text == '-2':
+            cursor.execute(f"""UPDATE {TABLE} SET Activate=0 WHERE Activate=1""")
+            cursor.execute(f"""UPDATE {TABLE} SET Activate=1 WHERE ID={id - 1}""")
+            connection.commit()
+            connection.close()
+            connection2.close()
+            return False
+        connection.close()
+        connection2.close()
+        return text
 
-    text = cursor.execute(f"""SELECT Text FROM {TABLE} WHERE ID={quest_id}""").fetchall()[0][0]
-
-    connection.commit()
-    connection.close()
-
-    return text
 
 def check_item_in_inventory(list_: list) -> bool:
     for item in list_:
-        if item not in inventory:
-            return True
-    else:
-        return False
+        if not (item in inventory):
+            return False
+    return True

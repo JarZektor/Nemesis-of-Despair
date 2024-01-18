@@ -1,5 +1,6 @@
 import sys
 import json
+import game
 
 from PyQt5.QtWidgets import QApplication, QPushButton, QLabel, QMainWindow, QCheckBox, QComboBox, QScrollBar
 from PyQt5.QtGui import QIcon
@@ -142,9 +143,8 @@ class Window(QMainWindow):
 
     def start(self):
         self.update_json()
-        # Всё будет, но не сразу!
-        print("Данные обновлены, игра запущена")
-        ...
+        self.close()
+        game.start()
 
     def hide_control(self):
         self.controls.hide()
